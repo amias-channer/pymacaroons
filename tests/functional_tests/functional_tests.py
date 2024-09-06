@@ -360,13 +360,14 @@ never use the same secret twice'
         discharge.add_first_party_caveat('time < 2015-01-01T00:00')
         protected = m.prepare_for_request(discharge)
 
-        v = Verifier(discharge_macaroons=[protected])
+        v = Verifier()
         v.satisfy_exact('account = 3735928559')
         v.satisfy_exact('time < 2015-01-01T00:00')
         verified = v.verify(
             m,
             'this is a different super-secret key; \
-never use the same secret twice'
+never use the same secret twice',
+            [protected]
         )
         assert verified
 
@@ -386,7 +387,7 @@ never use the same secret twice'
       discharge1 = root.prepare_for_request(discharge1)
       discharge2 = root.prepare_for_request(discharge2)
 
-      verified = Verifier(discharge_macaroons=[discharge1, discharge2]).verify(root, "root-key")
+      verified = Verifier().verify(root, "root-key", [discharge1, discharge2])
       assert verified
 
     @patch('nacl.secret.random')
@@ -421,4 +422,4 @@ never use the same secret twice'
         m2.add_third_party_caveat("charlie", "bob-caveat-root-key", "bob-is-great")
         m2 = m1.prepare_for_request(m2)
         with pytest.raises(MacaroonUnmetCaveatException):
-            Verifier(discharge_macaroons=[m2]).verify(m1, "root-key")
+            Verifier().verify(m1, "root-key", [m2])
